@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LRP - Yönetim Paneli</title>
+    <!-- Bootstrap ve FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-bg: #2c3e50; --main-bg: #f8f9fa; }
+        body { background-color: var(--main-bg); overflow-x: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { min-width: 250px; max-width: 250px; background: var(--sidebar-bg); min-height: 100vh; color: white; transition: all 0.3s; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin: 5px 15px; border-radius: 5px; cursor: pointer; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
+        .content-area { flex: 1; padding: 30px; }
+        .hidden { display: none !important; }
+        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    
+<!-- 1. GİRİŞ EKRANI -->
+<div id="login-screen" class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4 mt-5">
+            <div class="card p-4 shadow-sm">
+                <div class="text-center mb-4">
+                    <i class="fas fa-microchip fa-3x text-primary"></i>
+                    <h3 class="mt-2">LRP Sistem Girişi</h3>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Kullanıcı Adı</label>
+                    <input type="text" id="userInput" class="form-control" placeholder="admin veya öğrenci no">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Şifre</label>
+                    <input type="password" id="passInput" class="form-control" placeholder="123">
+                </div>
+                <button class="btn btn-primary w-100 py-2" onclick="handleLogin()">Giriş Yap</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. ANA PANEL (ADMIN) -->
+<div id="admin-panel" class="d-flex hidden">
+    <!-- Sidebar Menüsü -->
+    <nav class="sidebar p-3 shadow">
+        <div class="text-center mb-4">
+            <i class="fas fa-user-shield fa-2x mb-2"></i>
+            <h5 id="adminNameDisplay">Yönetici</h5>
+            <span class="badge bg-success">Admin Modülü</span>
+        </div>
+        <hr>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link active" id="btn-lab" onclick="showPage('lab-page')"><i class="fas fa-flask me-2"></i> Lab Yönetimi</a></li>
+            <li class="nav-item"><a class="nav-link" id="btn-pc" onclick="showPage('pc-page')"><i class="fas fa-desktop me-2"></i> Bilgisayar Kayıt</a></li>
+            <li class="nav-item"><a class="nav-link" id="btn-assign" onclick="showPage('assign-page')"><i class="fas fa-user-tag me-2"></i> Öğrenci Atama</a></li>
+        </ul>
+        <button class="btn btn-outline-danger w-100 mt-auto mb-3" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i> Çıkış</button>
+    </nav>
+
+    <!-- İçerik Alanı (SPA Mantığı) -->
+    <main class="content-area">
+        
+        <!-- Sayfa 1: Lab Yönetimi -->
+        <section id="lab-page" class="page">
+            <h2 class="mb-4">Laboratuvar İşlemleri</h2>
+            <div class="card p-4 mb-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" id="labNameInput" class="form-control" placeholder="Yeni Laboratuvar Adı (Örn: Yazılım Lab 1)">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100" onclick="addLab()"><i class="fas fa-plus me-1"></i> Lab Ekle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-4">
+                <table class="table align-middle">
+                    <thead class="table-light"><tr><th>ID</th><th>Laboratuvar Adı</th></tr></thead>
+                    <tbody id="labTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sayfa 2: Bilgisayar Ekleme -->
+        <section id="pc-page" class="page hidden">
+            <h2 class="mb-4">Envanter Kayıt</h2>
+            <div class="card p-4 shadow-sm">
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Bağlı Olduğu Lab</label><select id="pcLabSelect" class="form-select"></select></div>
+                    <div class="col-md-6"><label class="form-label">Marka</label><input type="text" id="pcBrand" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">İşlemci</label><input type="text" id="pcCpu" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">RAM</label><input type="text" id="pcRam" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Donanım Özellikleri</label><input type="text" id="pcFeatures" class="form-control" placeholder="HDMI, Veyon vb."></div>
+                    <div class="col-12"><button class="btn btn-primary px-4" onclick="addPC()"><i class="fas fa-save me-1"></i> Kaydet ve Demirbaş Üret</button></div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <h4>Kayıtlı Bilgisayarlar</h4>
+                <div class="card p-3"><table class="table"><tbody id="pcTableBody"></tbody></table></div>
+            </div>
+        </section>
+
+        <!-- Sayfa 3: Atama -->
+        <section id="assign-page" class="page hidden">
+            <h2 class="mb-4">Sorumluluk Atama</h2>
+            <div class="card p-4 shadow-sm">
+                <p class="text-muted small">* Seçilen bilgisayar öğrenciye zimmetlenir ve öğrenci hesabı otomatik açılır.</p>
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label">Bilgisayar (Demirbaş)</label><select id="assignPcSelect" class="form-select"></select></div>
+                    <div class="col-md-4"><label class="form-label">Öğrenci No</label><input type="text" id="studentNo" class="form-control" placeholder="Örn: 2024001"></div>
+                    <div class="col-md-4"><label class="form-label">Ad Soyad</label><input type="text" id="studentName" class="form-control"></div>
+                    <div class="col-12"><button class="btn btn-dark w-100" onclick="assignStudent()"><i class="fas fa-link me-1"></i> Zimmetle ve Kullanıcı Oluştur</button></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    const API = "http://localhost:5214/api"; // Backend Portun
+
+    // --- Kimlik Doğrulama (Auth) ---
+    async function handleLogin() {
+        const u = document.getElementById('userInput').value;
+        const p = document.getElementById('passInput').value;
+        
+        try {
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+
+            if(res.ok) {
+                const user = await res.json();
+                localStorage.setItem('currentUser', JSON.stringify(user)); //
+                
+                if(user.role === "Admin") {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('adminNameDisplay').innerText = user.fullName;
+                    loadLabs();
+                } else if(user.role === "Student") {
+                    window.location.href = "student.html"; // Öğrenci sayfasına yönlendir
+                }
+            } else {
+                alert("Hatalı bilgiler! Lütfen kontrol edin.");
+            }
+        } catch (e) {
+            alert("Backend bağlantı hatası!");
+        }
+    }
+
+    // --- Sayfa Yönlendirme (SPA - Single Page Application) ---
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById(pageId).classList.remove('hidden');
+        
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        // Tıklanan butona active class'ı ekle
+        if(pageId === 'lab-page') { document.getElementById('btn-lab').classList.add('active'); loadLabs(); }
+        if(pageId === 'pc-page') { document.getElementById('btn-pc').classList.add('active'); loadLabsForPC(); loadPCs(); }
+        if(pageId === 'assign-page') { document.getElementById('btn-assign').classList.add('active'); loadPCsForAssign(); }
+    }
+
+    // --- Laboratuvar Fonksiyonları ---
+    async function loadLabs() {
+        const res = await fetch(`${API}/labs`);
+        const labs = await res.json();
+        const tbody = document.getElementById('labTableBody');
+        tbody.innerHTML = labs.map(l => `<tr><td>#${l.id}</td><td><b>${l.name}</b></td></tr>`).join('');
+    }
+
+    async function addLab() {
+        const name = document.getElementById('labNameInput').value;
+        if(!name) return alert("İsim boş olamaz");
+        await fetch(`${API}/labs`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name})
+        });
+        document.getElementById('labNameInput').value = "";
+        loadLabs();
+    }
+
+    // --- Bilgisayar Fonksiyonları ---
+    async function loadLabsForPC() {
+        const res = await fetch(`${API}/labs`);
+        const labs = await res.json();
+        document.getElementById('pcLabSelect').innerHTML = labs.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+    }
+
+    async function addPC() {
+        const dto = {
+            labId: parseInt(document.getElementById('pcLabSelect').value),
+            brand: document.getElementById('pcBrand').value,
+            processor: document.getElementById('pcCpu').value,
+            ram: document.getElementById('pcRam').value,
+            hardwareFeatures: document.getElementById('pcFeatures').value
+        };
+        const res = await fetch(`${API}/computers`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dto)
+        });
+        if(res.ok) {
+            alert("PC Eklendi! Demirbaş kodu otomatik üretildi.");
+            loadPCs();
+        }
+    }
+
+    async function loadPCs() {
+        const res = await fetch(`${API}/computers`);
+        const pcs = await res.json();
+        document.getElementById('pcTableBody').innerHTML = pcs.map(p => `
+            <tr class="small">
+                <td><span class="badge bg-dark">${p.assetCode}</span></td>
+                <td>${p.brand} - ${p.processor} - ${p.ram}</td>
+                <td class="text-muted">${p.studentName ? '<i class="fas fa-user border-start ps-2 ms-2"></i> ' + p.studentName : '<span class="text-danger">Boşta</span>'}</td>
+            </tr>
+        `).join('');
+    }
+
+    // --- Atama Fonksiyonları ---
+    async function loadPCsForAssign() {
+        const res = await fetch(`${API}/computers`);
+        const pcs = await res.json();
+        document.getElementById('assignPcSelect').innerHTML = pcs.map(p => `<option value="${p.id}">${p.assetCode} (${p.brand})</option>`).join('');
+    }
+
+    async function assignStudent() {
+        const dto = {
+            computerId: parseInt(document.getElementById('assignPcSelect').value),
+            studentNo: document.getElementById('studentNo').value,
+            studentName: document.getElementById('studentName').value
+        };
+        const res = await fetch(`${API}/computers/assign`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dto)
+        });
+        const result = await res.json();
+        alert(result.message);
+        document.getElementById('studentNo').value = "";
+        document.getElementById('studentName').value = "";
+    }
+
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+</script>
+</body>
+</html>
